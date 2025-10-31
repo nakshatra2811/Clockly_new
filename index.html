@@ -120,46 +120,47 @@
                     <h1><i class="fas fa-hourglass-half"></i> Countdown Timer</h1>
                     <p>Set a timer and get notified when it completes</p>
                 </div>
-                <div class="timer-container">
-                    <div class="timer-display" id="timerDisplay">00:00:00</div>
-                    <div class="timer-inputs" id="timerInputs">
-                        <div class="input-group">
-                            <label>Hours</label>
-                            <div class="input-controls">
-                                <button class="input-btn" data-action="dec" data-unit="hours">-</button>
-                                <input type="number" id="hoursInput" min="0" max="23" value="0">
-                                <button class="input-btn" data-action="inc" data-unit="hours">+</button>
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label>Minutes</label>
-                            <div class="input-controls">
-                                <button class="input-btn" data-action="dec" data-unit="minutes">-</button>
-                                <input type="number" id="minutesInput" min="0" max="59" value="0">
-                                <button class="input-btn" data-action="inc" data-unit="minutes">+</button>
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label>Seconds</label>
-                            <div class="input-controls">
-                                <button class="input-btn" data-action="dec" data-unit="seconds">-</button>
-                                <input type="number" id="secondsInput" min="0" max="59" value="0">
-                                <button class="input-btn" data-action="inc" data-unit="seconds">+</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="timer-controls">
-                        <button class="btn btn-primary" id="timerStart">
-                            <i class="fas fa-play"></i> Start
-                        </button>
-                        <button class="btn btn-warning" id="timerPause" disabled>
-                            <i class="fas fa-pause"></i> Pause
-                        </button>
-                        <button class="btn btn-danger" id="timerCancel" disabled>
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                    </div>
-                </div>
+                <div class="timer-container" id="astroTimerContainer">
+    <div class="timer-display" id="astroTimerDisplay">00:00:00</div>
+    <div class="timer-inputs" id="astroTimerInputs">
+        <div class="input-group">
+            <label>Hours</label>
+            <div class="input-controls">
+                <button class="input-btn" data-action="dec" data-unit="hours" id="astroHourDec">-</button>
+                <input type="number" id="astroHoursInput" min="0" max="23" value="0">
+                <button class="input-btn" data-action="inc" data-unit="hours" id="astroHourInc">+</button>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Minutes</label>
+            <div class="input-controls">
+                <button class="input-btn" data-action="dec" data-unit="minutes" id="astroMinDec">-</button>
+                <input type="number" id="astroMinutesInput" min="0" max="59" value="0">
+                <button class="input-btn" data-action="inc" data-unit="minutes" id="astroMinInc">+</button>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Seconds</label>
+            <div class="input-controls">
+                <button class="input-btn" data-action="dec" data-unit="seconds" id="astroSecDec">-</button>
+                <input type="number" id="astroSecondsInput" min="0" max="59" value="0">
+                <button class="input-btn" data-action="inc" data-unit="seconds" id="astroSecInc">+</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="timer-controls">
+        <button class="btn btn-primary" id="astroTimerStart">
+            <i class="fas fa-play"></i> Start
+        </button>
+        <button class="btn btn-warning" id="astroTimerPause" disabled>
+            <i class="fas fa-pause"></i> Pause
+        </button>
+        <button class="btn btn-danger" id="astroTimerCancel" disabled>
+            <i class="fas fa-times"></i> Cancel
+        </button>
+    </div>
+</div>
                 <div id="dt-modal" class="date-timer-modal">
                     <div class="date-timer-modal-content">
                         <div class="modal-header"><span class="modal-close-icon">⏰</span></div>
@@ -721,6 +722,7 @@
             </button>
         </div>
     </div>
+    <audio id="alarmAudio" src="alarm.mp3"></audio>
 
     <script src="app.js"></script>
     <script src="js/contact.js"></script>
@@ -910,7 +912,163 @@
     if (overlay) overlay.style.display = 'none';
   });
 </script>
+<script>
+let astroTotalSeconds = 0;
+let astroTimerInterval = null;
+let astroTimerRunning = false;
+// Get elements
+const astroDisplay = document.getElementById('astroTimerDisplay');
+const astroHoursInput = document.getElementById('astroHoursInput');
+const astroMinutesInput = document.getElementById('astroMinutesInput');
+const astroSecondsInput = document.getElementById('astroSecondsInput');
+const astroTimerStart = document.getElementById('astroTimerStart');
+const astroTimerPause = document.getElementById('astroTimerPause');
+const astroTimerCancel = document.getElementById('astroTimerCancel');
+const astroAlarmAudio = document.getElementById('astroAlarmAudio');
+
+// Input +/- button handlers
+document.getElementById('astroHourInc').onclick = () => {
+    astroHoursInput.value = Math.min(23, parseInt(astroHoursInput.value) + 1);
+};
+document.getElementById('astroHourDec').onclick = () => {
+    astroHoursInput.value = Math.max(0, parseInt(astroHoursInput.value) - 1);
+};
+document.getElementById('astroMinInc').onclick = () => {
+    astroMinutesInput.value = Math.min(59, parseInt(astroMinutesInput.value) + 1);
+};
+document.getElementById('astroMinDec').onclick = () => {
+    astroMinutesInput.value = Math.max(0, parseInt(astroMinutesInput.value) - 1);
+};
+document.getElementById('astroSecInc').onclick = () => {
+    astroSecondsInput.value = Math.min(59, parseInt(astroSecondsInput.value) + 1);
+};
+document.getElementById('astroSecDec').onclick = () => {
+    astroSecondsInput.value = Math.max(0, parseInt(astroSecondsInput.value) - 1);
+};
+
+function astroFormat(seconds) {
+    let h = Math.floor(seconds / 3600);
+    let m = Math.floor((seconds % 3600) / 60);
+    let s = seconds % 60;
+    return (
+        String(h).padStart(2,'0') + ':' +
+        String(m).padStart(2,'0') + ':' +
+        String(s).padStart(2,'0')
+    );
+}
+
+function astroUpdateDisplay() {
+    astroDisplay.textContent = astroFormat(astroTotalSeconds);
+}
+
+function astroResetTimer() {
+    clearInterval(astroTimerInterval);
+    astroTimerInterval = null;
+    astroTimerRunning = false;
+    astroTotalSeconds = 0;
+    astroUpdateDisplay();
+    astroTimerStart.disabled = false;
+    astroTimerPause.disabled = true;
+    astroTimerCancel.disabled = true;
+    astroHoursInput.disabled = false;
+    astroMinutesInput.disabled = false;
+    astroSecondsInput.disabled = false;
+}
+
+astroTimerStart.onclick = () => {
+    if (astroTimerRunning) return;
+    // Read input values
+    let hours = parseInt(astroHoursInput.value);
+    let mins = parseInt(astroMinutesInput.value);
+    let secs = parseInt(astroSecondsInput.value);
+    astroTotalSeconds = hours * 3600 + mins * 60 + secs;
+    if (astroTotalSeconds <= 0) {
+        alert("Set a valid time!");
+        return;
+    }
+    astroTimerRunning = true;
+    astroTimerStart.disabled = true;
+    astroTimerPause.disabled = false;
+    astroTimerCancel.disabled = false;
+    astroHoursInput.disabled = true;
+    astroMinutesInput.disabled = true;
+    astroSecondsInput.disabled = true;
+    astroUpdateDisplay();
+
+    astroTimerInterval = setInterval(() => {
+        astroTotalSeconds--;
+        astroUpdateDisplay();
+        if (astroTotalSeconds <= 0) {
+            clearInterval(astroTimerInterval);
+            astroTimerRunning = false;
+            // Play alarm for 7 seconds
+            astroAlarmAudio.play();
+            setTimeout(() => {
+                astroAlarmAudio.pause();
+                astroAlarmAudio.currentTime = 0;
+            }, 7000);
+            alert("⏰ Time's up!");
+            astroResetTimer();
+        }
+    }, 1000);
+};
+
+astroTimerPause.onclick = () => {
+    if (!astroTimerRunning) return;
+    clearInterval(astroTimerInterval);
+    astroTimerRunning = false;
+    astroTimerStart.disabled = false;
+    astroTimerPause.disabled = true;
+};
+
+astroTimerCancel.onclick = () => {
+    astroResetTimer();
+    astroHoursInput.value = 0;
+    astroMinutesInput.value = 0;
+    astroSecondsInput.value = 0;
+};
+</script>
+<script>
+
+    // Countdown seconds (set this value)
+let countdownSeconds = 10; // Example: 10 seconds
+
+// Update display function (replace this with your own UI code)
+function updateDisplay(sec) {
+    console.log("Time left:", sec); // Replace with your HTML update logic
+}
+
+// Play audio function
+function playAlarm() {
+    const audio = document.getElementById('alarmAudio');
+    audio.play();
+    // Optional: Stop after 7 seconds
+    setTimeout(() => {
+        audio.pause();
+        audio.currentTime = 0;
+    }, 7000);
+}
+
+// Start countdown
+function startCountdown(seconds) {
+    let timeLeft = seconds;
+    updateDisplay(timeLeft);
+    const timer = setInterval(() => {
+        timeLeft--;
+        updateDisplay(timeLeft);
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            playAlarm();
+            alert("⏰ Time's up!");
+        }
+    }, 1000);
+}
+
+// HOW TO USE
+startCountdown(countdownSeconds);
 
 
+
+</script>
 </body>
 </html>
